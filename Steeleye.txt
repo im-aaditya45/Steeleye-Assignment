@@ -1,0 +1,63 @@
+import csv
+import xml.etree.ElementTree as ET
+
+# Load the XML data
+xml_data = '''<root>
+    <FinInstrmGnlAttrbts>
+        <Id>1001</Id>
+        <FullNm>Stock A</FullNm>
+        <ClssfctnTp>Equity</ClssfctnTp>
+        <CmmdtyDerivInd>false</CmmdtyDerivInd>
+        <NtnlCcy>USD</NtnlCcy>
+        <Issr>ABC Corp</Issr>
+    </FinInstrmGnlAttrbts>
+    <FinInstrmGnlAttrbts>
+        <Id>1002</Id>
+        <FullNm>Bond B</FullNm>
+        <ClssfctnTp>Fixed Income</ClssfctnTp>
+        <CmmdtyDerivInd>false</CmmdtyDerivInd>
+        <NtnlCcy>EUR</NtnlCcy>
+        <Issr>XYZ Inc</Issr>
+    </FinInstrmGnlAttrbts>
+</root>'''
+
+# Parse the XML data
+root = ET.fromstring(xml_data)
+
+# Create a CSV file and write the header row
+with open('output.csv', 'w', newline='') as csvfile:
+    fieldnames = ['FinInstrmGnlAttrbts.Id', 'FinInstrmGnlAttrbts.FullNm', 'FinInstrmGnlAttrbts.ClssfctnTp', 'FinInstrmGnlAttrbts.CmmdtyDerivInd', 'FinInstrmGnlAttrbts.NtnlCcy', 'Issr']
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
+
+    # Write the data rows
+    for fin_instrm in root.findall('FinInstrmGnlAttrbts'):
+        row = {
+            'FinInstrmGnlAttrbts.Id': fin_instrm.find('Id').text,
+            'FinInstrmGnlAttrbts.FullNm': fin_instrm.find('FullNm').text,
+            'FinInstrmGnlAttrbts.ClssfctnTp': fin_instrm.find('ClssfctnTp').text,
+            'FinInstrmGnlAttrbts.CmmdtyDerivInd': fin_instrm.find('CmmdtyDerivInd').text,
+            'FinInstrmGnlAttrbts.NtnlCcy': fin_instrm.find('NtnlCcy').text,
+            'Issr': fin_instrm.find('Issr').text
+        }
+        writer.writerow(row)
+
+print("XML data has been converted to CSV successfully!")
+
+
+import boto3
+import csv
+
+# Create an S3 client
+s3_client = boto3.client('s3')
+
+# Specify the name of the S3 bucket
+bucket_name = 'your_bucket_name'
+
+# Specify the name of the CSV file to be uploaded
+csv_file_name = 'output.csv'
+
+# Upload the local CSV file to the S3 bucket
+s3_client.upload_file(csv_file_name, bucket_name, csv_file_name)
+
+print("CSV file has been uploaded to S3 successfully!")
